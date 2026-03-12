@@ -71,11 +71,10 @@ public final class Evaluator implements Ast.Visitor<RuntimeValue, EvaluateExcept
                 }
 
                 this.scope = new Scope(this.scope);
-                RuntimeValue value = new RuntimeValue.Primitive(null);
                 for (var stmt : ast.body()) {
-                    value = visit(stmt);
+                    visit(stmt);
                 }
-                return value;
+                return new RuntimeValue.Primitive(null);
             } catch (Return returnValue) {
                 return returnValue.value;
             } finally {
@@ -337,11 +336,10 @@ public final class Evaluator implements Ast.Visitor<RuntimeValue, EvaluateExcept
                     }
 
                     this.scope = new Scope(this.scope);
-                    RuntimeValue value = new RuntimeValue.Primitive(null);
                     for (var stmt : method.body()) {
-                        value = visit(stmt);
+                        visit(stmt);
                     }
-                    return value;
+                    return new RuntimeValue.Primitive(null);
                 } catch (Return returnValue) {
                     return returnValue.value;
                 } finally {
