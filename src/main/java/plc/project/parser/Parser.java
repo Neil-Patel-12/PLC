@@ -73,13 +73,19 @@ public final class Parser {
         Token nameTok = require(Token.Type.IDENTIFIER);
         String name = nameTok.literal();
 
+        // Optional type annotation: ':' identifier
+        Optional<String> type = Optional.empty();
+        if (tokens.match(":")) {
+            type = Optional.of(require(Token.Type.IDENTIFIER).literal());
+        }
+
         Optional<Ast.Expr> init = Optional.empty();
         if (tokens.match("=")) {
             init = Optional.of(parseExpr());
         }
 
         require(";");
-        return new Ast.Stmt.Let(name, init);
+        return new Ast.Stmt.Let(name, type, init);
     }
 
     private Ast.Stmt parseDefStmt() throws ParseException {
@@ -88,24 +94,40 @@ public final class Parser {
 
         require("(");
         var params = new ArrayList<String>();
+        var paramTypes = new ArrayList<Optional<String>>();
         if (!tokens.peek(")")) {
             params.add(require(Token.Type.IDENTIFIER).literal());
+            if (tokens.match(":")) {
+                paramTypes.add(Optional.of(require(Token.Type.IDENTIFIER).literal()));
+            } else {
+                paramTypes.add(Optional.empty());
+            }
             while (tokens.match(",")) {
                 params.add(require(Token.Type.IDENTIFIER).literal());
+                if (tokens.match(":")) {
+                    paramTypes.add(Optional.of(require(Token.Type.IDENTIFIER).literal()));
+                } else {
+                    paramTypes.add(Optional.empty());
+                }
             }
         }
         require(")");
 
+        // Optional return type annotation: ':' identifier
+        Optional<String> returnType = Optional.empty();
+        if (tokens.match(":")) {
+            returnType = Optional.of(require(Token.Type.IDENTIFIER).literal());
+        }
+
         require("DO");
         var body = new ArrayList<Ast.Stmt>();
         while (!tokens.peek("END")) {
-            // If END is missing, (next token / empty).
             if (!tokens.has(0)) throw new ParseException("Expected END.", tokens.getNext());
             body.add(parseStmt());
         }
         require("END");
 
-        return new Ast.Stmt.Def(name, params, body);
+        return new Ast.Stmt.Def(name, params, paramTypes, returnType, body);
     }
 
     private Ast.Stmt parseIfStmt() throws ParseException {

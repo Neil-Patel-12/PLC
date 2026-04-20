@@ -17,14 +17,27 @@ public sealed interface Ast {
 
         record Let(
             String name,
+            Optional<String> type,
             Optional<Expr> value
-        ) implements Ast.Stmt {}
+        ) implements Stmt {
+            @Deprecated
+            public Let(String name, Optional<Expr> value) {
+                this(name, Optional.empty(), value);
+            }
+        }
 
         record Def(
             String name,
             List<String> parameters,
+            List<Optional<String>> parameterTypes, //a Parameter class is better, but not compatible with existing uses.
+            Optional<String> returnType,
             List<Stmt> body
-        ) implements Ast.Stmt {}
+        ) implements Stmt {
+            @Deprecated
+            public Def(String name, List<String> parameters, List<Stmt> body) {
+                this(name, parameters, Stream.generate(Optional::<String>empty).limit(parameters.size()).toList(), Optional.empty(), body);
+            }
+        }
 
         record If(
             Expr condition,
